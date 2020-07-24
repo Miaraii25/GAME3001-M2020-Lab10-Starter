@@ -242,8 +242,9 @@ void PlayScene::m_displayGrid()
 	{
 		for (int col = 0; col < Config::COL_NUM; ++col)
 		{
+			auto colour = (!m_pGrid[row * Config::COL_NUM]->getLOS()) ? glm::vec4(1.0f, 0.0f, 0.0f, 1.0f) : glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
 			Util::DrawRect(m_pGrid[row * Config::COL_NUM + col]->getTransform()->position - glm::vec2(m_pGrid[row * Config::COL_NUM + col]->getWidth() * 0.5f, m_pGrid[row * Config::COL_NUM + col]->getHeight() * 0.5f),
-				40, 40);
+				Config::TILE_SIZE, Config::TILE_SIZE);
 
 			Util::DrawRect(m_pGrid[row * Config::COL_NUM + col]->getTransform()->position,
 				5, 5);
@@ -273,6 +274,43 @@ void PlayScene::m_setGridLOS()
 	}
 }
 
+void PlayScene::m_buildClockwisePatrolPath()
+{
+
+	// right
+	for (auto i = 0; i < Config::COL_NUM; i++)
+	{
+		m_pPatrolPath.push_back(m_pGrid[i]);
+	}
+
+	// down
+	for (auto i = 1; i < Config::ROW_NUM; i++)
+	{
+		m_pPatrolPath.push_back(m_pGrid[i * Config::COL_NUM + Config::COL_NUM - 1]);
+	}
+
+	// left
+	for (auto i = 1; i < Config::COL_NUM; i++)
+	{
+		m_pPatrolPath.push_back(m_pGrid[Config::COL_NUM * Config::ROW_NUM - 1 - i]);
+	}
+
+	//up
+	for (auto i = Config::ROW_NUM - 2; i > 0; i--)
+	{
+		m_pPatrolPath.push_back(m_pGrid[i * Config::COL_NUM]);
+	}
+}
+
+
+void PlayScene::m_displayPatrolPath()
+{
+	for (auto node : m_pPatrolPath)
+	{
+		std::cout << "(" << node->getTransform()->position.x << "," << node->getTransform()->position.y << std::endl;
+	}
+}
+
 void PlayScene::start()
 {
 	m_bPlayerHasLOS = false;
@@ -282,12 +320,23 @@ void PlayScene::start()
 	m_bDebugMode = false;
 	m_bPatrolMode = false;
 	
+	m_buildClockwisePatrolPath();
+	///*/*/*m_displayPatrolPath*/();*/*/
+
+	
 	// Plane Sprite
 	m_pPlaneSprite = new Plane();
+	m_pPlaneSprite->getTransform()->position = m_pPatrolPath[0]->getTransform()->position;
 	addChild(m_pPlaneSprite);
+
+	glm::vec2 nextposition = m_pPatrolPath[1]->getTransform()->position - m_pPlaneSprite->getTransform()->position;
+	glm::vec2 normalized = Util::normalize(nextposition);
+
+	std::cout << "normalized directions:(" << normalized.x << "," << normalized.y << ")" << std::endl;
 
 	// Player Sprite
 	m_pPlayer = new Player();
+	m_pPlayer->getTransform()->position = glm::vec2(600.0f, 440.0f);
 	addChild(m_pPlayer);
 	m_playerFacingRight = true;
 

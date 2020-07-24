@@ -46,8 +46,15 @@ private:
 	bool m_bPatrolMode;
 
 	bool m_bDebugKeys[NUM_OF_DEBUG_KEYS];
+	
 
 	std::vector<PathNode*> m_pGrid;
+	
+	//patrol path
+
+	std::vector<PathNode*>m_pPatrolPath;
+	void m_buildClockwisePatrolPath();
+	void m_displayPatrolPath();
 	
 };
 
