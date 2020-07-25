@@ -45,6 +45,7 @@ void PlayScene::update()
 	CollisionManager::AABBCheck(m_pPlayer, m_pPlaneSprite);
 
 	CollisionManager::AABBCheck(m_pPlayer, m_pObstacle);
+	m_movePlaneToTargetNode();
 
 	m_setGridLOS();
 }
@@ -311,6 +312,47 @@ void PlayScene::m_displayPatrolPath()
 	}
 }
 
+void PlayScene::m_movePlaneToTargetNode()
+{
+	if (m_bPatrolMode)
+	{
+		m_pTargetPathNode = m_pPatrolPath[m_targetPathNodeIndex];
+
+		// return a vector of util length
+		auto targetVector = Util::normalize(m_pTargetPathNode->getTransform()->position - m_pPlaneSprite->getTransform()->position);
+
+		// rotate PlaneSprite's Texture according to direction of travel
+		if (targetVector.x == 1)
+		{
+			m_pPlaneSprite->setAngle(90.0f);
+		}
+		else if (targetVector.x == -1)
+		{
+			m_pPlaneSprite->setAngle(-90.0f);
+		}
+
+		if (targetVector.y == 1)
+		{
+			m_pPlaneSprite->setAngle(180.0f);
+		}
+		else if (targetVector.y == -1)
+		{
+			m_pPlaneSprite->setAngle(0.0f);
+		}
+
+		m_pPlaneSprite->getRigidBody()->velocity = targetVector;
+		m_pPlaneSprite->getTransform()->position += m_pPlaneSprite->getRigidBody()->velocity * m_pPlaneSprite->getRigidBody()->maxSpeed;
+		if (m_pPlaneSprite->getTransform()->position == m_pTargetPathNode->getTransform()->position)
+		{
+			m_targetPathNodeIndex++;
+			if (m_targetPathNodeIndex > m_pPatrolPath.size() - 1)
+			{
+				m_targetPathNodeIndex = 0;
+			}
+		}
+
+	}
+}
 void PlayScene::start()
 {
 	m_bPlayerHasLOS = false;
@@ -322,11 +364,15 @@ void PlayScene::start()
 	
 	m_buildClockwisePatrolPath();
 	///*/*/*m_displayPatrolPath*/();*/*/
+	m_targetPathNodeIndex = 1;
+
+
 
 	
 	// Plane Sprite
 	m_pPlaneSprite = new Plane();
 	m_pPlaneSprite->getTransform()->position = m_pPatrolPath[0]->getTransform()->position;
+	m_pPlaneSprite->getRigidBody()->maxSpeed = 5.0f;
 	addChild(m_pPlaneSprite);
 
 	glm::vec2 nextposition = m_pPatrolPath[1]->getTransform()->position - m_pPlaneSprite->getTransform()->position;

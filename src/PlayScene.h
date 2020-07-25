@@ -55,6 +55,9 @@ private:
 	std::vector<PathNode*>m_pPatrolPath;
 	void m_buildClockwisePatrolPath();
 	void m_displayPatrolPath();
+	int m_targetPathNodeIndex;
+	PathNode* m_pTargetPathNode;
+	void m_movePlaneToTargetNode();
 	
 };
 
